@@ -19,14 +19,13 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=50)
-    quantity = models.PositiveIntegerField()
     units = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        ordering = ['name', 'quantity']
+        ordering = ['name']
 
 
 class Recipe(models.Model):
