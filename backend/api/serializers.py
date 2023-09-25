@@ -56,6 +56,29 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         )
 
 
+class PostRecipeSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True)
+    image = Base64ImageField(required=False, allow_null=True)
+    tag = SlugRelatedField(
+        slug_field='slug',
+        queryset=Tag.objects.all(),
+        many=True
+    )
+    ingredient = SlugRelatedField(
+        slug_field='name',
+        queryset=Ingredient.objects.all(),
+        many=True
+    )
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id', 'name', 'author',
+            'image', 'tag', 'description',
+            'ingredient', 'cooking_time'
+        )
+
+
 class FollowSerializer(serializers.ModelSerializer):
     user = SlugRelatedField(
         queryset=User.objects.all(),
