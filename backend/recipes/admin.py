@@ -7,7 +7,8 @@ from .models import (
     Follow,
     Favorite,
     TagRecipe,
-    IngredientRecipe
+    IngredientRecipe,
+    ShoppingList
 )
 
 
@@ -58,3 +59,10 @@ class TagRecipeAdmin(admin.ModelAdmin):
 @admin.register(IngredientRecipe)
 class IngredientRecipeAdmin(admin.ModelAdmin):
     list_display = ('ingredient', 'recipe')
+
+
+@admin.register(ShoppingList)
+class ShoppingListAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe')
+    search_fields = ('user', 'recipe')
+    list_filter = ('recipe',)

@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-User = get_user_model()
+from users.models import MyUser as User
 
 
 class Tag(models.Model):
@@ -64,9 +63,10 @@ class TagRecipe(models.Model):
 class IngredientRecipe(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    count = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        return f'{self.recipe}: {self.ingredient}'
+        return f'{self.recipe}: {self.ingredient}, {self.count}'
 
 
 class Follow(models.Model):
@@ -96,6 +96,23 @@ class Favorite(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         related_name='follower'
+    )
+
+    class Meta:
+        unique_together = ('recipe', 'user')
+        ordering = ['recipe']
+
+
+class ShoppingList(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_list'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='shopper'
     )
 
     class Meta:
