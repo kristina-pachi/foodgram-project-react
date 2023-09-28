@@ -24,6 +24,7 @@ class Ingredient(models.Model):
         return self.name
 
     class Meta:
+        unique_together = ('name', 'units')
         ordering = ['name']
 
 
@@ -45,11 +46,14 @@ class Recipe(models.Model):
             MaxValueValidator(600)
             ]
         )
-    tag = models.ManyToManyField(Tag, through='TagRecipe')
-    ingredient = models.ManyToManyField(Ingredient, through='IngredientRecipe')
+    tags = models.ManyToManyField(Tag, through='TagRecipe')
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        through='IngredientRecipe'
+    )
 
     class Meta:
-        ordering = ['author', 'tag__tag', 'cooking_time']
+        ordering = ['author', 'tags__tag', 'cooking_time']
 
 
 class TagRecipe(models.Model):

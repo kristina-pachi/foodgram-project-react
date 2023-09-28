@@ -11,7 +11,8 @@ from recipes.models import (
     Tag,
     Follow,
     Favorite,
-    ShoppingList
+    ShoppingList,
+    IngredientRecipe,
 )
 
 
@@ -31,40 +32,46 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'slug', 'color')
-        read_only_fields = '__all__'
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'units')
-        read_only_fields = '__all__'
+
+
+class IngredientRecipeSerializer(serializers.ModelSerializer):
+    ingredient = PrimaryKeyRelatedField(queryset=Ingredient.objects.all(),)
+
+    class Meta:
+        model = IngredientRecipe
+        fields = '__all__'
 
 
 class GetRecipeSerializer(serializers.ModelSerializer):
     author = PrimaryKeyRelatedField(queryset=User.objects.all(),)
     image = Base64ImageField(required=False, allow_null=True)
-    tag = TagSerializer(many=True)
-    ingredient = IngredientSerializer(many=True)
+    tags = TagSerializer(many=True)
+    ingredients = IngredientRecipeSerializer(many=True)
 
     class Meta:
         model = Recipe
         fields = (
             'id', 'name', 'author',
-            'image', 'tag', 'description',
-            'ingredient', 'cooking_time'
+            'image', 'tags', 'description',
+            'ingredients', 'cooking_time'
         )
 
 
 class PostRecipeSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
     image = Base64ImageField(required=False, allow_null=True)
-    tag = SlugRelatedField(
+    tags = SlugRelatedField(
         slug_field='slug',
         queryset=Tag.objects.all(),
         many=True
     )
-    ingredient = SlugRelatedField(
+    ingredients = SlugRelatedField(
         slug_field='name',
         queryset=Ingredient.objects.all(),
         many=True
@@ -74,9 +81,22 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id', 'name', 'author',
-            'image', 'tag', 'description',
-            'ingredient', 'cooking_time'
+            'image', 'tags', 'description',
+            'ingredients', 'cooking_time'
         )
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        for ingredient in ingredients:
+            IngredientRecipe.objects.create(
+                recipe=recipe,
+                ingredient=ingredient['id'],
+                count=ingredient['count']
+            )
+        recipe.tags.set(tags)
+        return recipe
 
 
 class FollowSerializer(serializers.ModelSerializer):
