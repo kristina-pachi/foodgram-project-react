@@ -18,19 +18,19 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=50)
-    units = models.CharField(max_length=20)
+    measurement_unit = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        unique_together = ('name', 'units')
+        unique_together = ('name', 'measurement_unit')
         ordering = ['name']
 
 
 class Recipe(models.Model):
     name = models.CharField(max_length=200)
-    description = models.TextField()
+    text = models.TextField()
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -53,7 +53,7 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ['author', 'tags__tag', 'cooking_time']
+        ordering = ['author', 'tags__slug', 'cooking_time']
 
 
 class TagRecipe(models.Model):
@@ -67,10 +67,10 @@ class TagRecipe(models.Model):
 class IngredientRecipe(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    count = models.PositiveIntegerField(default=1)
+    amount = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        return f'{self.recipe}: {self.ingredient}, {self.count}'
+        return f'{self.recipe}: {self.ingredient}, {self.amount}'
 
 
 class Follow(models.Model):

@@ -15,8 +15,8 @@ from .models import (
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'author', 'followers')
-    search_fields = ('name', 'description')
-    list_filter = ('author', 'description', 'tags')
+    search_fields = ('name', 'text')
+    list_filter = ('author', 'text', 'tags')
 
     def followers(self, obj):
         from django.db.models import Count
@@ -26,9 +26,9 @@ class RecipeAdmin(admin.ModelAdmin):
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'units')
+    list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
-    list_filter = ('units',)
+    list_filter = ('measurement_unit',)
 
 
 @admin.register(Tag)
@@ -58,7 +58,7 @@ class TagRecipeAdmin(admin.ModelAdmin):
 
 @admin.register(IngredientRecipe)
 class IngredientRecipeAdmin(admin.ModelAdmin):
-    list_display = ('ingredient', 'recipe', 'count')
+    list_display = ('ingredient', 'recipe', 'amount')
 
 
 @admin.register(ShoppingList)

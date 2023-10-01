@@ -37,15 +37,16 @@ class TagSerializer(serializers.ModelSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'units')
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
-    ingredient = PrimaryKeyRelatedField(queryset=Ingredient.objects.all(),)
+    id = PrimaryKeyRelatedField(queryset=Ingredient.objects.all(),)
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientRecipe
-        fields = '__all__'
+        fields = ('id', 'amount')
 
 
 class GetRecipeSerializer(serializers.ModelSerializer):
@@ -58,7 +59,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id', 'name', 'author',
-            'image', 'tags', 'description',
+            'image', 'tags', 'text',
             'ingredients', 'cooking_time'
         )
 
@@ -81,7 +82,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id', 'name', 'author',
-            'image', 'tags', 'description',
+            'image', 'tags', 'text',
             'ingredients', 'cooking_time'
         )
 
@@ -93,7 +94,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
             IngredientRecipe.objects.create(
                 recipe=recipe,
                 ingredient=ingredient['id'],
-                count=ingredient['count']
+                amount=ingredient['amount']
             )
         recipe.tags.set(tags)
         return recipe
