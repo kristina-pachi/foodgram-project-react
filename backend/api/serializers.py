@@ -115,6 +115,12 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ('user', 'author')
 
+    def validate(self, data):
+        if data['author'] == data['user']:
+            raise serializers.ValidationError(
+                'Вы не можете подписаться на себя!')
+        return data
+
 
 class FavoriteSerializer(serializers.ModelSerializer):
     user = SlugRelatedField(
