@@ -9,7 +9,6 @@ from .serializers import (
     FollowSerializer,
     FavoriteSerializer,
     ShoppingListSerializer,
-    IngredientRecipeSerializer
 )
 from .permissions import IsAuthorPermission
 from .filters import RecipeFilter
@@ -29,6 +28,7 @@ from recipes.models import (
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    search_fields = ('name',)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,6 +43,7 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = pagination.LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    search_fields = ('name',)
 
     def get_permissions(self):
         if self.request.method in ('PATCH', 'DELETE'):

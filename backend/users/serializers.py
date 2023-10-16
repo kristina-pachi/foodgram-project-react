@@ -3,22 +3,19 @@ from rest_framework import serializers
 from .models import MyUser
 
 
-class SignUpSerializer(serializers.ModelSerializer):
-    """Сериализатор для регистрации пользователя."""
+class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = MyUser
-        fields = ('email', 'username', 'first_name', 'last_name', 'password')
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'id',
+            'is_subscribed'
+        )
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError('Пользователя с username "me" '
-                                              'нельзя зарегистрировать')
-        return value
-
-
-class TokenSerializer(serializers.ModelSerializer):
-    """Выдача токена."""
-    class Meta:
-        model = MyUser
-        fields = ('username', 'email')
+    def get_is_subscribed(self, obj):
+        pass
