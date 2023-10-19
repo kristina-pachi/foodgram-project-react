@@ -9,6 +9,7 @@ from recipes.models import (
     Recipe,
     Ingredient,
     Tag,
+    Follow,
     Favorite,
     ShoppingList,
     IngredientRecipe,
@@ -89,10 +90,12 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        pass
+        user = self.context['request'].user
+        return Favorite.objects.filter(user=user, recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        pass
+        user = self.context['request'].user
+        return ShoppingList.objects.filter(user=user, recipe=obj).exists()
 
 
 class PostRecipeSerializer(serializers.ModelSerializer):
@@ -132,7 +135,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class FollowSerializer(serializers.ModelSerializer):
+class GetFollowSerializer(serializers.ModelSerializer):
     recipes = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
     recipes_count = serializers.ReadOnlyField(source='recipes.count')
@@ -147,49 +150,59 @@ class FollowSerializer(serializers.ModelSerializer):
         )
 
     def get_recipes(self, obj):
-        recipes = []
-
+        recipes = Recipe.objects.filter(author=self.context['username'])
         return RecipeSerializer(recipes, many=True, context=self.context).data
 
     def get_is_subscribed(self, obj):
-        pass
+        user = self.context['request'].user
+        return Follow.objects.filter(user=user, author=obj).exists()
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ('user', 'author')
 
     def validate(self, data):
-        if data['author'] == data['user']:
+        author = data['author']
+        user = data['user']
+        if author == user:
             raise serializers.ValidationError(
                 'Вы не можете подписаться на себя!')
+        if self.context['request'].method == 'DELETE':
+            if not Follow.objects.filter(author=author, user=user):
+                raise serializers.ValidationError(
+                    'Вы не можете отписаться, если не были подписаны!')
         return data
+
+    def to_representation(self, instance):
+        return GetFollowSerializer(instance.author, context=self.context).data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    user = SlugRelatedField(
-        queryset=User.objects.all(),
-        slug_field='username',
-        default=serializers.CurrentUserDefault()
-    )
-    recipe = SlugRelatedField(
-        required=True,
-        queryset=Recipe.objects.all(),
-        slug_field='name',
-    )
-
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
 
+    def to_representation(self, instance):
+        return RecipeSerializer(instance.recipe, context=self.context).data
+
+    def validate(self, data):
+        user = data['user']
+        recipe = data['recipe']
+        if self.context['request'].method == 'DELETE':
+            if not Favorite.objects.filter(recipe=recipe, user=user):
+                raise serializers.ValidationError(
+                    'Вы не можете удалить рецепт из избранного, '
+                    'если не добовляли его!'
+                )
+        return data
+
 
 class ShoppingListSerializer(serializers.ModelSerializer):
-    user = SlugRelatedField(
-        queryset=User.objects.all(),
-        slug_field='username',
-        default=serializers.CurrentUserDefault()
-    )
-    recipe = SlugRelatedField(
-        required=True,
-        queryset=Recipe.objects.all(),
-        slug_field='name',
-    )
-
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        return RecipeSerializer(instance.recipe, context=self.context).data

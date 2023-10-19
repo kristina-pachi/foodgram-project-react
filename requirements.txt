@@ -5,3 +5,4 @@ sqlparse==0.4.4
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.7.2
 django-filter
+django-wkhtmltopdf==3.4.0
