@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, pagination, mixins
-from django.views.generic.base import View
 from wkhtmltopdf.views import PDFTemplateResponse
 
 from .serializers import (
@@ -21,9 +21,6 @@ from recipes.models import (
     Recipe,
     Ingredient,
     Tag,
-    Follow,
-    Favorite,
-    ShoppingList,
     IngredientRecipe,
 )
 
@@ -39,7 +36,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TagSerializer
 
 
-class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = GetRecipeSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -57,6 +54,40 @@ class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.method not in ('GET', 'DELETE'):
             serializer_class = PostRecipeSerializer
         return serializer_class
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user
+        )
+
+    @action(methods=['get'], detail=False)
+    def download_shopping_cart(self, request):
+
+        result = {}
+        recipes = get_object_or_404(Recipe, shopper__user=self.request.user)
+        for recipe in recipes:
+            ingredients = get_object_or_404(IngredientRecipe, recipe=recipe)
+            for ingredient in ingredients:
+                amount = ingredient.amount
+                name, measurement_unit = get_object_or_404(
+                    Ingredient, id=ingredient.ingredient)
+                if name in result:
+                    result[name][1] += amount
+                else:
+                    result[name] = [measurement_unit, amount]
+
+        response = PDFTemplateResponse(
+            request=request,
+            template='shopping_list.html',
+            filename="shopping_list.pdf",
+            context={
+                'title': 'Список покупок',
+                'ingredients': result
+            },
+            show_content_in_browser=False,
+            cmd_options={'margin-top': 50},
+        )
+        return response
 
 
 class FollowViewSet(
@@ -98,31 +129,19 @@ class FavoriteViewSet(
         )
 
 
-class ShoppingListView(View):
+class ShoppingListView(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
 
-    def ingredients(self):
-        recipes = get_object_or_404(Recipe, shopper__user=self.request.user)
-        for recipe in recipes:
-            ingredients = get_object_or_404(IngredientRecipe, recipe=recipe)
-            for ingredient in ingredients:
-                pass
+    serializer_class = ShoppingListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = pagination.LimitOffsetPagination
 
-    template = 'shopping_list.html'
-    context = {'title': 'Список покупок'}
-
-    def get(self, request):
-        response = PDFTemplateResponse(
-            request=request,
-            template=self.template,
-            filename="shopping_list.pdf",
-            context=self.context,
-            show_content_in_browser=False,
-            cmd_options={'margin-top': 50},
+    def perform_create(self, serializer):
+        recipe = get_object_or_404(Recipe, id=self.kwargs.get('id'))
+        serializer.save(
+            recipe=recipe,
+            user=self.request.user
         )
-        return response
-
-    def post(self, request):
-        pass
-
-    def delete(self, request):
-        pass

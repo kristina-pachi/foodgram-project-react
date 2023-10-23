@@ -204,5 +204,16 @@ class ShoppingListSerializer(serializers.ModelSerializer):
         model = ShoppingList
         fields = ('user', 'recipe')
 
+    def validate(self, data):
+        user = data['user']
+        recipe = data['recipe']
+        if self.context['request'].method == 'DELETE':
+            if not Favorite.objects.filter(recipe=recipe, user=user):
+                raise serializers.ValidationError(
+                    'Вы не можете удалить рецепт из списка покупок, '
+                    'если не добовляли его!'
+                )
+        return data
+
     def to_representation(self, instance):
         return RecipeSerializer(instance.recipe, context=self.context).data

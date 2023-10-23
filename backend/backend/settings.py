@@ -57,11 +57,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [TEMPLATES_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -149,3 +150,5 @@ DJOSER = {
         'current_user': 'users.serializers.UserSerializer',
     },
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
