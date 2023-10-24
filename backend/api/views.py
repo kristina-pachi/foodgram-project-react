@@ -121,6 +121,9 @@ class FavoriteViewSet(
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = pagination.LimitOffsetPagination
 
+    def get_queryset(self):
+        return get_object_or_404(Recipe, follower__user=self.request.user)
+
     def perform_create(self, serializer):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('id'))
         serializer.save(
@@ -138,6 +141,9 @@ class ShoppingListView(
     serializer_class = ShoppingListSerializer
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = pagination.LimitOffsetPagination
+
+    def get_queryset(self):
+        return get_object_or_404(Recipe, shopper__user=self.request.user)
 
     def perform_create(self, serializer):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('id'))
