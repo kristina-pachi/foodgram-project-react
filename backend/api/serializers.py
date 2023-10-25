@@ -116,17 +116,34 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
+
         for ingredient in ingredients:
             IngredientRecipe.objects.create(
                 recipe=recipe,
                 ingredient=ingredient['id'],
                 amount=ingredient['amount']
-            )
+            ).save()
         recipe.tags.set(tags)
         return recipe
 
     def update(self, instance, validated_data):
-        pass
+        instance.name = validated_data.get('name', instance.name)
+        instance.image = validated_data.get('image', instance.image)
+        instance.text = validated_data.get('text', instance.text)
+
+        ingredients = validated_data.pop('ingredients')
+        IngredientRecipe.objects.filter(recipe=instance).delete()
+        for ingredient in ingredients:
+            IngredientRecipe.objects.create(
+                recipe=instance,
+                ingredient=ingredient['id'],
+                amount=ingredient['amount']
+            ).save()
+
+        tags = validated_data.pop('tags')
+        instance.tags.set(tags)
+        instance.save()
+        return instance
 
 
 class RecipeSerializer(serializers.ModelSerializer):
