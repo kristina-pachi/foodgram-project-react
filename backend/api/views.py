@@ -60,7 +60,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             author=self.request.user
         )
 
-    @action(methods=['get'], detail=False)
+    @action(
+            methods=['get'],
+            detail=False,
+            permission_classes=(permissions.IsAuthenticated,)
+    )
     def download_shopping_cart(self, request):
 
         result = {}
