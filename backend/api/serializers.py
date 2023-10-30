@@ -102,7 +102,10 @@ class PostRecipeSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
     image = Base64ImageField(required=False, allow_null=True)
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-    ingredients = PostIngredientRecipeSerializer(many=True,)
+    ingredients = PostIngredientRecipeSerializer(
+        many=True,
+        source='recipe_ingredients'
+    )
 
     class Meta:
         model = Recipe

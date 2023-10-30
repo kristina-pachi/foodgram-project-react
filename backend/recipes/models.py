@@ -49,7 +49,8 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag, through='TagRecipe')
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='IngredientRecipe'
+        through='IngredientRecipe',
+        related_name='recipes'
     )
 
     class Meta:
@@ -65,8 +66,16 @@ class TagRecipe(models.Model):
 
 
 class IngredientRecipe(models.Model):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients'
+    )
     amount = models.PositiveIntegerField(default=1)
 
     def __str__(self):

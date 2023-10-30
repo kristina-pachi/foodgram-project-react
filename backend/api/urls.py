@@ -32,6 +32,6 @@ router.register(
 urlpatterns = [
     path('users/me/', UserViewSet.as_view({'get': 'me'})),
     path('users/set_password/', UserViewSet.as_view({'post': 'set_password'})),
-    path('', include(router.urls)),
     path('auth/', include('djoser.urls.authtoken')),
+    path('', include(router.urls)),
 ]
