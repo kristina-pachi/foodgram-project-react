@@ -46,7 +46,11 @@ class Recipe(models.Model):
             MaxValueValidator(600)
             ]
         )
-    tags = models.ManyToManyField(Tag, through='TagRecipe')
+    tags = models.ManyToManyField(
+        Tag,
+        through='TagRecipe',
+        related_name='recipes'
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe',
@@ -54,19 +58,27 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ['author', 'tags__slug', 'cooking_time']
+        ordering = ['-id']
 
 
 class TagRecipe(models.Model):
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    tag = models.ForeignKey(
+        Tag,
+        related_name='recipe_tags',
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='recipe_tags',
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return f'{self.recipe}: {self.tag}'
 
 
 class IngredientRecipe(models.Model):
-    ingredient = models.ForeignKey(
+    ingredients = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
         related_name='recipe_ingredients'
@@ -79,7 +91,7 @@ class IngredientRecipe(models.Model):
     amount = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        return f'{self.recipe}: {self.ingredient}, {self.amount}'
+        return f'{self.recipe}: {self.ingredients}, {self.amount}'
 
 
 class Follow(models.Model):

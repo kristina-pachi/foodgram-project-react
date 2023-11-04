@@ -9,10 +9,6 @@ app_name = 'api'
 
 router = DefaultRouter()
 
-router.register('users', MyUserViewSet)
-router.register('tags', views.TagViewSet)
-router.register('ingredients', views.IngredientViewSet)
-router.register('recipes', views.RecipeViewSet)
 router.register(
     r'users/(?P<id>\d+)/subscribe',
     views.FollowViewSet,
@@ -28,6 +24,10 @@ router.register(
     views.ShoppingListView,
     basename='shopping_card'
 )
+router.register('users', MyUserViewSet)
+router.register('tags', views.TagViewSet)
+router.register('ingredients', views.IngredientViewSet)
+router.register('recipes', views.RecipeViewSet)
 
 urlpatterns = [
     path('users/me/', UserViewSet.as_view({'get': 'me'})),

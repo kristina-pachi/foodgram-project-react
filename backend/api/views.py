@@ -29,11 +29,13 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     search_fields = ('name',)
+    pagination_class = None
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -94,19 +96,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
-class FollowViewSet(
+class CreateDestroyViewSet(
     mixins.CreateModelMixin,
-    mixins.ListModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
+    pass
+
+
+class FollowViewSet(CreateDestroyViewSet):
 
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = pagination.LimitOffsetPagination
 
     def get_queryset(self):
-        return get_object_or_404(User, following__user=self.request.user)
+        return get_object_or_404(User, folslowing__user=self.request.user)
 
     def perform_create(self, serializer):
         author = get_object_or_404(User, id=self.kwargs.get('id'))
@@ -116,13 +121,9 @@ class FollowViewSet(
         )
 
 
-class FavoriteViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
+class FavoriteViewSet(CreateDestroyViewSet):
     serializer_class = FavoriteSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = pagination.LimitOffsetPagination
 
     def get_queryset(self):
@@ -135,12 +136,12 @@ class FavoriteViewSet(
             user=self.request.user
         )
 
+    def perform_destroy(self, instance):
+        print('это он')
+        return super().perform_destroy(instance)
 
-class ShoppingListView(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
+
+class ShoppingListView(CreateDestroyViewSet):
 
     serializer_class = ShoppingListSerializer
     permission_classes = (permissions.IsAuthenticated,)
