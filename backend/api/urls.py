@@ -14,16 +14,6 @@ router.register(
     views.FollowViewSet,
     basename='follow'
 )
-router.register(
-    r'recipes/(?P<id>\d+)/favorite',
-    views.FavoriteViewSet,
-    basename='favorite'
-)
-router.register(
-    r'recipes/(?P<id>\d+)/shopping_card',
-    views.ShoppingListView,
-    basename='shopping_card'
-)
 router.register('users', MyUserViewSet)
 router.register('tags', views.TagViewSet)
 router.register('ingredients', views.IngredientViewSet)
@@ -33,5 +23,7 @@ urlpatterns = [
     path('users/me/', UserViewSet.as_view({'get': 'me'})),
     path('users/set_password/', UserViewSet.as_view({'post': 'set_password'})),
     path('auth/', include('djoser.urls.authtoken')),
+    path('recipes/<int:id>/favorite/', views.APIFavorite.as_view()),
+    path('recipes/<int:id>/shopping_cart/', views.APIShoppingList.as_view()),
     path('', include(router.urls)),
 ]

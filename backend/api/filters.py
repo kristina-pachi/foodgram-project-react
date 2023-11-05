@@ -14,7 +14,9 @@ class RecipeFilter(rest_framework.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'author')
+        fields = (
+            'tags', 'author'
+        )
 
 
 class IngredientSearchFilter(SearchFilter):

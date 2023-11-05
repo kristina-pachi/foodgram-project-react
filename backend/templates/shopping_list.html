@@ -6,9 +6,9 @@
 </head>
 <body>
     <ul>
-        {% for name, count in ingredients.items() %}
+        {% for ingredient in ingredients %}
             <li>
-                {{ name }}, {{ count[1] }} {{ count[0] }}
+                {{ ingredient }}
             </li>
         {% endfor %}
     </ul>

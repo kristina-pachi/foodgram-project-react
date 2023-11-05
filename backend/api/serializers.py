@@ -204,11 +204,6 @@ class FollowSerializer(serializers.ModelSerializer):
         if author == user:
             raise serializers.ValidationError(
                 'Вы не можете подписаться на себя!')
-        if self.context['request'].method == 'DELETE':
-            if not Follow.objects.filter(author=author, user=user):
-                raise serializers.ValidationError(
-                    'Вы не можете отписаться, если не были подписаны!')
-        return data
 
     def to_representation(self, instance):
         return GetFollowSerializer(instance.author, context=self.context).data
@@ -223,36 +218,12 @@ class FavoriteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return RecipeSerializer(instance.recipe, context=self.context).data
 
-    def validate(self, data):
-        user = self.context['request'].user
-        recipe_id = self.context['view'].kwargs['id']
-        recipe = Recipe.objects.filter(id=recipe_id,)
-        if self.context['request'].method == 'DELETE':
-            if not Favorite.objects.filter(recipe=recipe, user=user):
-                raise serializers.ValidationError(
-                    'Вы не можете удалить рецепт из избранного, '
-                    'если не добовляли его!'
-                )
-        return data
-
 
 class ShoppingListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
         read_only_fields = ('user', 'recipe')
-
-    def validate(self, data):
-        user = self.context['request'].user
-        recipe_id = self.context['view'].kwargs['id']
-        recipe = Recipe.objects.filter(id=recipe_id,)
-        if self.context['request'].method == 'DELETE':
-            if not Favorite.objects.filter(recipe=recipe, user=user):
-                raise serializers.ValidationError(
-                    'Вы не можете удалить рецепт из списка покупок, '
-                    'если не добовляли его!'
-                )
-        return data
 
     def to_representation(self, instance):
         return RecipeSerializer(instance.recipe, context=self.context).data
