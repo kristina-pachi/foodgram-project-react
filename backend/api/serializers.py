@@ -94,10 +94,14 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
+        if user.is_anonymous:
+            return False
         return Favorite.objects.filter(user=user, recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
+        if user.is_anonymous:
+            return False
         return ShoppingList.objects.filter(user=user, recipe=obj).exists()
 
     def get_author(self, obj):
@@ -147,12 +151,12 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         instance.image = validated_data.get('image', instance.image)
         instance.text = validated_data.get('text', instance.text)
 
-        ingredients = validated_data.pop('ingredients')
+        ingredients = validated_data.pop('recipe_ingredients')
         IngredientRecipe.objects.filter(recipe=instance).delete()
         for ingredient in ingredients:
             IngredientRecipe.objects.create(
                 recipe=instance,
-                ingredient=ingredient['id'],
+                ingredients=ingredient['id'],
                 amount=ingredient['amount']
             ).save()
 
@@ -204,6 +208,7 @@ class FollowSerializer(serializers.ModelSerializer):
         if author == user:
             raise serializers.ValidationError(
                 'Вы не можете подписаться на себя!')
+        return data
 
     def to_representation(self, instance):
         return GetFollowSerializer(instance.author, context=self.context).data

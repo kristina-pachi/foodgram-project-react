@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
+from django.http import FileResponse
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
-from rest_framework import viewsets, permissions, pagination, mixins, status
-from wkhtmltopdf.views import PDFTemplateResponse
+from rest_framework import viewsets, permissions, pagination, status
 from rest_framework.views import APIView
 
 from .serializers import (
@@ -25,7 +25,8 @@ from recipes.models import (
     Tag,
     IngredientRecipe,
     Favorite,
-    ShoppingList
+    ShoppingList,
+    Follow
 )
 
 
@@ -93,61 +94,73 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipes = Recipe.objects.filter(
             shopper__user=request.user
         ).values_list('recipe_ingredients', flat=True)
+        print(recipes)
         for id in list(recipes):
-            ingredient = IngredientRecipe.objects.filter(ingredients=id)
-            name = list(ingredient.values_list('ingredients__name'))[0][0]
-            amount = list(ingredient.values_list('amount'))[0][0]
+            ingredient = IngredientRecipe.objects.filter(id=id)
+            print(ingredient)
+            name = list(ingredient.values_list(
+                'ingredients__name',
+                flat=True
+            ))[0]
+            amount = list(ingredient.values_list('amount', flat=True))[0]
             measurement_unit = list(ingredient.values_list(
-                'ingredients__measurement_unit'
-            ))[0][0]
+                'ingredients__measurement_unit', flat=True
+            ))[0]
             if name in result:
                 result[name][1] += amount
             else:
                 result[name] = [measurement_unit, amount]
-        ingredients = []
+        my_file = open("shopping_list.txt", "w+")
+        my_file.write("Список покупок \n")
         for name, count in result.items():
-            ingredients.append(f'{name} - {count[1]} {count[0]}')
-
-        response = PDFTemplateResponse(
-            request=request,
-            template='shopping_list.html',
-            filename="shopping_list.pdf",
-            context={
-                'title': 'Список покупок',
-                'ingredients': ingredients
-            },
-            show_content_in_browser=False,
-            cmd_options={'margin-top': 50},
-        )
-        return response
+            my_file.write(f"{name} - {count[1]} {count[0]}\n")
+        my_file.close()
+        return FileResponse(open("shopping_list.txt", "rb"))
 
 
-class CreateDestroyViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
-    pass
+class APIFollow(APIView):
 
-
-class FollowViewSet(CreateDestroyViewSet):
-
-    serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = pagination.LimitOffsetPagination
 
-    def get_queryset(self):
-        return get_object_or_404(User, following__user=self.request.user)
-
-    def perform_create(self, serializer):
-        author = get_object_or_404(User, id=self.kwargs.get('id'))
-        serializer.save(
-            author=author,
-            user=self.request.user
+    def post(self, request, id):
+        serializer = FollowSerializer(
+            data=request.data,
+            context={
+                'request': self.request,
+                'format': self.format_kwarg,
+                'view': self
+            }
         )
+        if serializer.is_valid():
+            author = get_object_or_404(User, id=id)
+            serializer.save(
+                author=author,
+                user=request.user
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        author = get_object_or_404(User, id=id)
+        follow = get_object_or_404(
+            Follow,
+            author=author,
+            user=request.user
+        )
+        serializer = FollowSerializer(
+            follow,
+            context={
+                'request': self.request,
+                'format': self.format_kwarg,
+                'view': self
+            }
+        )
+        follow.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
 class APIFavorite(APIView):
+
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, id):

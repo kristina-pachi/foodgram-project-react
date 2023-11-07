@@ -175,3 +175,8 @@ DJOSER = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+WKHTMLTOPDF_CMD = '/usr/local/lib/python3.9/site-packages/wkhtmltopdf'
+WKHTMLTOPDF_CMD_OPTIONS = {
+    'quiet': True,
+}
