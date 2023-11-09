@@ -9,7 +9,7 @@ class RecipeFilter(rest_framework.FilterSet):
         field_name='tags__slug',
         to_field_name='slug',
         queryset=Tag.objects.all()
-        )
+    )
     author = rest_framework.CharFilter(field_name='author__id')
 
     class Meta:

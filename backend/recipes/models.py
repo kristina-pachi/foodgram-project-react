@@ -44,8 +44,8 @@ class Recipe(models.Model):
         validators=[
             MinValueValidator(1),
             MaxValueValidator(600)
-            ]
-        )
+        ]
+    )
     tags = models.ManyToManyField(
         Tag,
         through='TagRecipe',
