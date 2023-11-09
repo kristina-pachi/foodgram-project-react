@@ -12,16 +12,26 @@ from .models import (
 )
 
 
+class TagRecipeAdminInline(admin.TabularInline):
+    model = TagRecipe
+    extra = 1
+
+
+class IngredientRecipeAdminInline(admin.TabularInline):
+    model = IngredientRecipe
+    extra = 1
+
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'author', 'followers')
     search_fields = ('name', 'text')
     list_filter = ('author', 'text', 'tags')
+    inlines = (IngredientRecipeAdminInline, TagRecipeAdminInline)
 
     def followers(self, obj):
-        from django.db.models import Count
         result = Favorite.objects.filter(recipe=obj)
-        return Count(result['recipe__follower'])
+        return len(list(result))
 
 
 @admin.register(Ingredient)
@@ -29,12 +39,14 @@ class IngredientAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
     list_filter = ('measurement_unit',)
+    inlines = (IngredientRecipeAdminInline,)
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'slug')
     search_fields = ('name',)
+    inlines = (TagRecipeAdminInline,)
 
 
 @admin.register(Follow)
@@ -49,16 +61,6 @@ class FavoritesAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     search_fields = ('user', 'recipe')
     list_filter = ('recipe',)
-
-
-@admin.register(TagRecipe)
-class TagRecipeAdmin(admin.ModelAdmin):
-    list_display = ('tag', 'recipe')
-
-
-@admin.register(IngredientRecipe)
-class IngredientRecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'ingredients', 'recipe', 'amount')
 
 
 @admin.register(ShoppingList)

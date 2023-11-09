@@ -13,10 +13,10 @@ router.register('ingredients', views.IngredientViewSet)
 router.register('recipes', views.RecipeViewSet)
 
 urlpatterns = [
+    path('auth/', include('djoser.urls.authtoken')),
     path('users/subscriptions/', APIMyUser.as_view()),
     path('', include(router.urls)),
     path('', include('djoser.urls')),
-    path('auth/', include('djoser.urls.authtoken')),
     path('recipes/<int:id>/favorite/', views.APIFavorite.as_view()),
     path('recipes/<int:id>/shopping_cart/', views.APIShoppingList.as_view()),
     path('users/<int:id>/subscribe/', views.APIFollow.as_view()),

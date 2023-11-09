@@ -11,7 +11,12 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-
+from django.contrib.auth.password_validation import (
+    UserAttributeSimilarityValidator,
+    MinimumLengthValidator,
+    NumericPasswordValidator,
+    CommonPasswordValidator
+)
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -26,8 +31,10 @@ SECRET_KEY = 'i13^w9*q)+00wcdz9)3#!r@m03-s@1y9kdgiklg*d3)9#v(!&i'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '158.160.31.26',
     '127.0.0.1',
-    'localhost'
+    'localhost',
+    'foodgram-myproject.hopto.org'
 ]
 
 
@@ -47,7 +54,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
-    'wkhtmltopdf',
 ]
 
 MIDDLEWARE = [
@@ -98,27 +104,13 @@ DATABASES = {
     }
 }
 
-
-# Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME':
-        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME':
-        'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME':
-        'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME':
-        'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': f'{UserAttributeSimilarityValidator}', },
+    {'NAME': f'{MinimumLengthValidator}', },
+    {'NAME': f'{CommonPasswordValidator}', },
+    {'NAME': f'{NumericPasswordValidator}', },
 ]
 
 

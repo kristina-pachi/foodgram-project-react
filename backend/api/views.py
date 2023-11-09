@@ -16,7 +16,7 @@ from .serializers import (
     ShoppingListSerializer,
 )
 from .permissions import IsAuthorPermission
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientSearchFilter
 
 from recipes.models import (
     User,
@@ -33,8 +33,8 @@ from recipes.models import (
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    search_fields = ('name',)
     pagination_class = None
+    filter_backends = (IngredientSearchFilter,)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
