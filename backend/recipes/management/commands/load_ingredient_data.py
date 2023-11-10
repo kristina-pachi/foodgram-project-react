@@ -13,7 +13,7 @@ class Command(BaseCommand):
                 open('data/ingredients.csv', encoding='utf8')):
             ingredient, created = Ingredient.objects.get_or_create(
                 name=row['name'],
-                units=row['units']
+                measurement_unit=row['measurement_unit']
             )
             if created:
                 print(f'Ingredient {ingredient.name} created')

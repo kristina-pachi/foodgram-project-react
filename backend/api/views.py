@@ -3,7 +3,7 @@ from django.http import FileResponse
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
-from rest_framework import viewsets, permissions, pagination, status
+from rest_framework import viewsets, permissions, pagination, status, filters
 from rest_framework.views import APIView
 
 from .serializers import (
@@ -16,7 +16,7 @@ from .serializers import (
     ShoppingListSerializer,
 )
 from .permissions import IsAuthorPermission
-from .filters import RecipeFilter, IngredientSearchFilter
+from .filters import RecipeFilter
 
 from recipes.models import (
     User,
@@ -34,7 +34,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = (IngredientSearchFilter,)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['^name',]
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

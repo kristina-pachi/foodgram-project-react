@@ -37,7 +37,6 @@ services:
       - "8000:80"
     volumes:
       - static:/usr/share/nginx/html/
-      - ./docs/:/usr/share/nginx/html/api/docs/
       - backend_static:/backend_static
       - backend_media:/backend_media
     depends_on:
