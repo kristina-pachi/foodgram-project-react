@@ -5,6 +5,8 @@ from recipes.models import Follow
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериалазер для пользователя."""
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:

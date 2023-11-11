@@ -4,6 +4,8 @@ from recipes.models import Recipe, Tag
 
 
 class RecipeFilter(rest_framework.FilterSet):
+    """Фильтрация рецептов по тегам и автору."""
+
     tags = rest_framework.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',

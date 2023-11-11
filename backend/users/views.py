@@ -5,6 +5,11 @@ from api.serializers import GetFollowSerializer
 
 
 class APIMyUser(generics.ListCreateAPIView):
+    """
+    Принимает только GET запрос,
+    отдаёт список подписок.
+    """
+
     serializer_class = GetFollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = pagination.LimitOffsetPagination

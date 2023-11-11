@@ -4,6 +4,11 @@ from django.core.validators import RegexValidator
 
 
 class MyUser(AbstractUser):
+    """
+    Кастомная модель пользователя
+    с заменой username на email при авторизации.
+    """
+
     username = models.CharField(
         max_length=150,
         unique=True,

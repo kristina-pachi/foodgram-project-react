@@ -11,18 +11,22 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import environ
+
+from pathlib import Path
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR))
+
+SECRET_KEY = env('SECRET_KEY', default='SECRET_KEY')
+
+DEBUG = env('DEBUG', default='DEBUG')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'i13^w9*q)+00wcdz9)3#!r@m03-s@1y9kdgiklg*d3)9#v(!&i'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = [
     '158.160.31.26',
@@ -61,12 +65,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
-TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [TEMPLATES_DIR],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -173,8 +176,3 @@ DJOSER = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-WKHTMLTOPDF_CMD = '/usr/local/lib/python3.9/site-packages/wkhtmltopdf'
-WKHTMLTOPDF_CMD_OPTIONS = {
-    'quiet': True,
-}

@@ -31,6 +31,11 @@ from recipes.models import (
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Принимает только GET запросы,
+    отдаёт список ингредиентов и ингредидиент по id.
+    """
+
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
@@ -39,12 +44,24 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Принимает только GET запросы,
+    отдаёт список тегов и тег по id.
+    """
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """
+    Принимает все запросы,
+    отдаёт список рецептов и рецепт по id,
+    создаёт, редактирует, удаляет рецепт,
+    отдаёт пользователю txt файл.
+    """
+
     queryset = Recipe.objects.all()
     serializer_class = GetRecipeSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -120,6 +137,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class APIFollow(APIView):
+    """
+    Принимает только POST и DELETE запросы,
+    создаёт и удаляет объект модели подписок.
+    """
 
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -161,6 +182,10 @@ class APIFollow(APIView):
 
 
 class APIFavorite(APIView):
+    """
+    Принимает только POST и DELETE запросы,
+    создаёт и удаляет объект модели избранного.
+    """
 
     permission_classes = [permissions.IsAuthenticated]
 
@@ -188,6 +213,10 @@ class APIFavorite(APIView):
 
 
 class APIShoppingList(APIView):
+    """
+    Принимает только POST и DELETE запросы,
+    создаёт и удаляет объект модели списка покупок.
+    """
 
     permission_classes = [permissions.IsAuthenticated]
 

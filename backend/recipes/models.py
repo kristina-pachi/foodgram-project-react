@@ -5,6 +5,8 @@ from users.models import MyUser as User
 
 
 class Tag(models.Model):
+    """Модель тега."""
+
     name = models.CharField(unique=True, max_length=200)
     slug = models.SlugField(unique=True)
     color = models.CharField(unique=True, max_length=16)
@@ -17,6 +19,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """Модель ингредиента."""
+
     name = models.CharField(max_length=100)
     measurement_unit = models.CharField(max_length=20)
 
@@ -29,6 +33,8 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    """Модель рецепта."""
+
     name = models.CharField(max_length=200)
     text = models.TextField()
     author = models.ForeignKey(
@@ -65,6 +71,8 @@ class Recipe(models.Model):
 
 
 class TagRecipe(models.Model):
+    """Связанная модель рецепта и тега."""
+
     tag = models.ForeignKey(
         Tag,
         related_name='recipe_tags',
@@ -81,6 +89,8 @@ class TagRecipe(models.Model):
 
 
 class IngredientRecipe(models.Model):
+    """Связанная модель рецепта и ингредиента."""
+
     ingredients = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
@@ -98,6 +108,8 @@ class IngredientRecipe(models.Model):
 
 
 class Follow(models.Model):
+    """Модель подписки."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -115,6 +127,8 @@ class Follow(models.Model):
 
 
 class Favorite(models.Model):
+    """Модель избранного."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -132,6 +146,8 @@ class Favorite(models.Model):
 
 
 class ShoppingList(models.Model):
+    """Модель списка покупок."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
