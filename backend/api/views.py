@@ -3,7 +3,11 @@ from django.http import FileResponse
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
-from rest_framework import viewsets, permissions, pagination, status, filters
+from rest_framework import (
+    viewsets, permissions,
+    pagination, status,
+    generics
+)
 from rest_framework.views import APIView
 
 from .serializers import (
@@ -14,9 +18,10 @@ from .serializers import (
     FollowSerializer,
     FavoriteSerializer,
     ShoppingListSerializer,
+    GetFollowSerializer
 )
 from .permissions import IsAuthorPermission
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientSearchFilter
 
 from recipes.models import (
     User,
@@ -39,8 +44,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['^name']
+    filter_backends = [IngredientSearchFilter]
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -69,22 +73,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    def get_queryset(self):
-        is_favorited = self.request.query_params.get('is_favorited')
-        if is_favorited is not None:
-            user = self.request.user
-            queryset = Recipe.objects.filter(follower__user=user)
-            return queryset
-        is_in_shopping_cart = self.request.query_params.get(
-            'is_in_shopping_cart'
-        )
-        if is_in_shopping_cart is not None:
-            user = self.request.user
-            queryset = Recipe.objects.filter(shopper__user=user)
-            return queryset
-        queryset = Recipe.objects.all()
-        return queryset
-
     def get_permissions(self):
         if self.request.method in ('PATCH', 'DELETE'):
             return (IsAuthorPermission(),)
@@ -112,10 +100,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipes = Recipe.objects.filter(
             shopper__user=request.user
         ).values_list('recipe_ingredients', flat=True)
-        print(recipes)
         for id in list(recipes):
             ingredient = IngredientRecipe.objects.filter(id=id)
-            print(ingredient)
             name = list(ingredient.values_list(
                 'ingredients__name',
                 flat=True
@@ -134,6 +120,66 @@ class RecipeViewSet(viewsets.ModelViewSet):
             my_file.write(f"{name} - {count[1]} {count[0]}\n")
         my_file.close()
         return FileResponse(open("shopping_list.txt", "rb"))
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def favorite(self, request, pk):
+
+        if request.method == 'POST':
+            serializer = FavoriteSerializer(data=request.data)
+            if serializer.is_valid():
+                recipe = get_object_or_404(Recipe, id=pk)
+                serializer.save(
+                    recipe=recipe,
+                    user=request.user
+                )
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        recipe = get_object_or_404(Recipe, id=pk)
+        favorite = get_object_or_404(
+            Favorite,
+            recipe=recipe,
+            user=request.user
+        )
+        serializer = FavoriteSerializer(favorite)
+        favorite.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def shopping_cart(self, request, pk):
+
+        if request.method == 'POST':
+            serializer = ShoppingListSerializer(data=request.data)
+            if serializer.is_valid():
+                recipe = get_object_or_404(Recipe, id=pk)
+                serializer.save(
+                    recipe=recipe,
+                    user=request.user
+                )
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        recipe = get_object_or_404(Recipe, id=pk)
+        shopper = get_object_or_404(
+            ShoppingList,
+            recipe=recipe,
+            user=request.user
+        )
+        serializer = ShoppingListSerializer(shopper)
+        shopper.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
 class APIFollow(APIView):
@@ -181,63 +227,17 @@ class APIFollow(APIView):
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
-class APIFavorite(APIView):
+class APIMyUser(generics.ListCreateAPIView):
     """
-    Принимает только POST и DELETE запросы,
-    создаёт и удаляет объект модели избранного.
-    """
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, id):
-        serializer = FavoriteSerializer(data=request.data)
-        if serializer.is_valid():
-            recipe = get_object_or_404(Recipe, id=id)
-            serializer.save(
-                recipe=recipe,
-                user=request.user
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, id):
-        recipe = get_object_or_404(Recipe, id=id)
-        favorite = get_object_or_404(
-            Favorite,
-            recipe=recipe,
-            user=request.user
-        )
-        serializer = FavoriteSerializer(favorite)
-        favorite.delete()
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
-
-
-class APIShoppingList(APIView):
-    """
-    Принимает только POST и DELETE запросы,
-    создаёт и удаляет объект модели списка покупок.
+    Принимает только GET запрос,
+    отдаёт список подписок.
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = GetFollowSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = pagination.LimitOffsetPagination
 
-    def post(self, request, id):
-        serializer = ShoppingListSerializer(data=request.data)
-        if serializer.is_valid():
-            recipe = get_object_or_404(Recipe, id=id)
-            serializer.save(
-                recipe=recipe,
-                user=request.user
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, id):
-        recipe = get_object_or_404(Recipe, id=id)
-        shopper = get_object_or_404(
-            ShoppingList,
-            recipe=recipe,
-            user=request.user
-        )
-        serializer = ShoppingListSerializer(shopper)
-        shopper.delete()
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+    def get_queryset(self):
+        user = self.request.user
+        queryset = User.objects.filter(following__user=user)
+        return queryset

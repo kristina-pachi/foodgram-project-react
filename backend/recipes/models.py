@@ -1,4 +1,4 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from users.models import MyUser as User
@@ -46,11 +46,8 @@ class Recipe(models.Model):
         null=True,
         default=None
     )
-    cooking_time = models.PositiveIntegerField(
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(600)
-        ]
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(5)],
     )
     tags = models.ManyToManyField(
         Tag,
@@ -60,7 +57,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe',
-        related_name='recipes'
+        related_name='recipes',
     )
 
     def __str__(self):
@@ -94,14 +91,19 @@ class IngredientRecipe(models.Model):
     ingredients = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='recipe_ingredients'
+        related_name='recipe_ingredients',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='recipe_ingredients'
     )
-    amount = models.PositiveIntegerField(default=1)
+    amount = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+    )
+
+    class Meta:
+        unique_together = ('recipe', 'ingredients')
 
     def __str__(self):
         return f'{self.recipe}: {self.ingredients}, {self.amount}'
@@ -137,7 +139,7 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='follower'
+        related_name='favorite_follower'
     )
 
     class Meta:

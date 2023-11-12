@@ -14,7 +14,6 @@ from recipes.models import (
     ShoppingList,
     IngredientRecipe,
 )
-from users.serializers import UserSerializer
 
 
 class Base64ImageField(serializers.ImageField):
@@ -80,10 +79,36 @@ class PostIngredientRecipeSerializer(serializers.ModelSerializer):
         )
 
 
+class UserSerializer(serializers.ModelSerializer):
+    """Сериалазер для пользователя."""
+
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'id',
+            'is_subscribed'
+        )
+        read_only_fields = ['is_subscribed']
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        following = list(obj.following.values_list('user', flat=True))
+        return (
+            user.is_authenticated
+            and user.id in following
+        )
+
+
 class GetRecipeSerializer(serializers.ModelSerializer):
     """Сериалазер для GET запросов рецепта."""
 
-    author = serializers.SerializerMethodField()
+    author = UserSerializer(many=False,)
     image = Base64ImageField(required=False, allow_null=True)
     tags = TagSerializer(many=True,)
     ingredients = GetIngredientRecipeSerializer(
@@ -104,19 +129,19 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        if user.is_anonymous:
-            return False
-        return Favorite.objects.filter(user=user, recipe=obj).exists()
+        followers = list(obj.favorite_follower.values_list('user', flat=True))
+        return (
+            user.is_authenticated
+            and user.id in followers
+        )
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        if user.is_anonymous:
-            return False
-        return ShoppingList.objects.filter(user=user, recipe=obj).exists()
-
-    def get_author(self, obj):
-        user = obj.author
-        return UserSerializer(user, context=self.context).data
+        shoppers = list(obj.shopper.values_list('user', flat=True))
+        return (
+            user.is_authenticated
+            and user.id in shoppers
+        )
 
 
 class PostRecipeSerializer(serializers.ModelSerializer):
@@ -143,8 +168,16 @@ class PostRecipeSerializer(serializers.ModelSerializer):
             'ingredients', 'cooking_time'
         )
 
+    def validate(self, data):
+        if not data['name'].isalpha():
+            raise serializers.ValidationError(
+                'Название может состоять только из букв!')
+        return data
+    # чтобы ингредиенты были уникальны в рецепте
+    # добавила unique_together в связнную модель
+    # и также минимальные валидаторы для полей amount, cooking_time
+
     def create(self, validated_data):
-        print(validated_data)
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('recipe_ingredients')
         recipe = Recipe.objects.create(**validated_data)
@@ -203,12 +236,19 @@ class GetFollowSerializer(serializers.ModelSerializer):
         )
 
     def get_recipes(self, obj):
-        recipes = Recipe.objects.filter(author=obj.id)
-        return RecipeSerializer(recipes, many=True, context=self.context).data
+        return RecipeSerializer(
+            obj.recipes,
+            many=True,
+            context=self.context
+        ).data
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return Follow.objects.filter(user=user, author=obj).exists()
+        following = list(obj.following.values_list('user', flat=True))
+        return (
+            user.is_authenticated
+            and user.id in following
+        )
 
 
 class FollowSerializer(serializers.ModelSerializer):
