@@ -22,7 +22,6 @@ from .serializers import (
 )
 from .permissions import IsAuthorPermission
 from .filters import RecipeFilter, IngredientSearchFilter
-
 from recipes.models import (
     User,
     Recipe,

@@ -173,9 +173,8 @@ class PostRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Название может состоять только из букв!')
         return data
-    # чтобы ингредиенты были уникальны в рецепте
-    # добавила unique_together в связнную модель
-    # и также минимальные валидаторы для полей amount, cooking_time
+    # поле тега обязательное,
+    # если ничего не выбрать кнопка 'создать рецепт' не заработает
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')

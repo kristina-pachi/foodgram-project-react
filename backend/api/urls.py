@@ -18,3 +18,5 @@ urlpatterns = [
     path('', include('djoser.urls')),
     path('users/<int:id>/subscribe/', views.APIFollow.as_view()),
 ]
+# за эндпоинт пользователя у меня овечает
+# дефолтная джосеровская вьющка, если её переопределять всё ломаетсz

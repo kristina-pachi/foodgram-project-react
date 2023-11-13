@@ -16,17 +16,9 @@ class RecipeFilter(rest_framework.FilterSet):
         method='filter_favorited',
     )
 
-    def filter_favorited(self, queryset, name, value):
-        queryset = queryset.filter(favorite_follower__user=self.request.user)
-        return queryset
-
     is_in_shopping_cart = rest_framework.CharFilter(
         method='filter_shopping_cart',
     )
-
-    def filter_shopping_cart(self, queryset, name, value):
-        queryset = queryset.filter(shopper__user=self.request.user)
-        return queryset
 
     class Meta:
         model = Recipe
@@ -34,6 +26,14 @@ class RecipeFilter(rest_framework.FilterSet):
             'tags', 'author',
             'is_favorited', 'is_in_shopping_cart'
         )
+
+    def filter_shopping_cart(self, queryset, name, value):
+        queryset = queryset.filter(shopper__user=self.request.user)
+        return queryset
+
+    def filter_favorited(self, queryset, name, value):
+        queryset = queryset.filter(favorite_follower__user=self.request.user)
+        return queryset
 
 
 class IngredientSearchFilter(SearchFilter):

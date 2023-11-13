@@ -28,6 +28,12 @@
 
 - Создавать теги и ингредиенты может только администратор или другие пользователи в категории staff, также они имеют права на удаление пользователя, его публикации и редактирование.
 
+### Список используемых библиотек
+- Все используемые библиотеки находятся в файле requirements:
+```
+<корневая директория>/backend/requirements.txt
+```
+
 ## Как развернуть проект на локальной машине
 - Клонируйте репозиторий:
 ```
@@ -54,6 +60,10 @@ docker compose -f docker-compose.production.yml exec backend python manage.py co
 docker compose -f docker-compose.production.yml exec backend python manage.py load_ingredient_data
 ```
 Проект будет развернут локально. В браузере перейдите по ссылке http://localhost:8000/
+
+### Для входа в админку
+- Почта: kristina.pachi.04@bk.ru
+- Пароль: 02.09.02Kartoska
 
 Над проектом работала:
 - [Кристина Пачи](https://github.com/kristina_pachi)
