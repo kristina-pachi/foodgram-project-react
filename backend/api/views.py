@@ -68,7 +68,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = GetRecipeSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    pagination_class = pagination.LimitOffsetPagination
+    pagination_class = pagination.PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
@@ -234,7 +234,7 @@ class APIMyUser(generics.ListCreateAPIView):
 
     serializer_class = GetFollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = pagination.LimitOffsetPagination
+    pagination_class = pagination.PageNumberPagination
 
     def get_queryset(self):
         user = self.request.user

@@ -1,4 +1,5 @@
 import base64
+import re
 
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField, SlugRelatedField
@@ -169,9 +170,10 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        if not data['name'].isalpha():
+        tpl = r'^[-a-zA-Zа-яА-ЯЁё\s]*$'
+        if re.fullmatch(tpl, data['name']) is None:
             raise serializers.ValidationError(
-                'Название может состоять только из букв!')
+                'Название может состоять только из букв и пробелов!')
         return data
     # поле тега обязательное,
     # если ничего не выбрать кнопка 'создать рецепт' не заработает
