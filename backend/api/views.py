@@ -21,7 +21,7 @@ from .serializers import (
     GetFollowSerializer
 )
 from .permissions import IsAuthorPermission
-from .filters import RecipeFilter, IngredientSearchFilter
+from .filters import RecipeFilter, IngredientFilter
 from recipes.models import (
     User,
     Recipe,
@@ -43,7 +43,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = [IngredientSearchFilter]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -68,9 +69,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = GetRecipeSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    pagination_class = pagination.PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+
+    def get_pagination_class(self):
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart'
+        )
+        if is_in_shopping_cart is not None:
+            return pagination.LimitOffsetPagination
+        return pagination.PageNumberPagination
+
+    pagination_class = property(fget=get_pagination_class)
 
     def get_permissions(self):
         if self.request.method in ('PATCH', 'DELETE'):
@@ -153,7 +163,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=(permissions.IsAuthenticated,)
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def shopping_cart(self, request, pk):
 

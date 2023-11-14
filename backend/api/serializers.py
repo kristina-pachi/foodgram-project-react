@@ -237,8 +237,11 @@ class GetFollowSerializer(serializers.ModelSerializer):
         )
 
     def get_recipes(self, obj):
+        recipes = list(obj.recipes.all())
+        if len(recipes) >= 3:
+            recipes = recipes[:3]
         return RecipeSerializer(
-            obj.recipes,
+            recipes,
             many=True,
             context=self.context
         ).data
