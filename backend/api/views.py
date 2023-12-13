@@ -63,6 +63,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     Принимает все запросы,
     отдаёт список рецептов и рецепт по id,
     создаёт, редактирует, удаляет рецепт,
+    отвечает за избранное и список покупок,
     отдаёт пользователю txt файл.
     """
 
@@ -109,6 +110,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipes = Recipe.objects.filter(
             shopper__user=request.user
         ).values_list('recipe_ingredients', flat=True)
+
         for id in list(recipes):
             ingredient = IngredientRecipe.objects.filter(id=id)
             name = list(ingredient.values_list(
@@ -123,11 +125,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 result[name][1] += amount
             else:
                 result[name] = [measurement_unit, amount]
+
         my_file = open("shopping_list.txt", "w+")
         my_file.write("Список покупок \n")
+
         for name, count in result.items():
             my_file.write(f"{name} - {count[1]} {count[0]}\n")
         my_file.close()
+
         return FileResponse(open("shopping_list.txt", "rb"))
 
     @action(

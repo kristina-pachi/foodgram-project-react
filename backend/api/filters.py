@@ -36,6 +36,8 @@ class RecipeFilter(rest_framework.FilterSet):
 
 
 class IngredientFilter(rest_framework.FilterSet):
+    """Фильтрация ингредиентов по названию."""
+
     name = rest_framework.CharFilter(
         field_name='name',
         lookup_expr='startswith'

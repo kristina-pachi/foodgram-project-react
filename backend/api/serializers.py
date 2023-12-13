@@ -175,8 +175,6 @@ class PostRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Название может состоять только из букв и пробелов!')
         return data
-    # поле тега обязательное,
-    # если ничего не выбрать кнопка 'создать рецепт' не заработает
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
